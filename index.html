@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Click the Button Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-top: 20px;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 90%;
+      max-width: 600px;
+      height: 60vh;
+      max-height: 400px;
+      border: 2px solid #333;
+      margin: 20px auto;
+      background-color: #fff;
+      overflow: hidden;
+    }
+
+    #clickButton {
+      position: absolute;
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    #score, #timer {
+      font-size: 1.5em;
+      margin: 10px 0;
+    }
+
+    #startBtn {
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5em;
+      }
+
+      #clickButton {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+
+      #startBtn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎯 Click the Button Game</h1>
+  <p>Click the button as many times as you can in 30 seconds!</p>
+
+  <div id="gameArea">
+    <button id="clickButton" style="display:none;">Click Me!</button>
+  </div>
+
+  <div id="score">Score: 0</div>
+  <div id="timer">Time Left: 30s</div>
+  <button id="startBtn">Start Game</button>
+
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const clickButton = document.getElementById('clickButton');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('startBtn');
+
+    let score = 0;
+    let gameTime = 30;
+    let gameInterval;
+
+    function randomPosition() {
+      const maxX = gameArea.clientWidth - clickButton.offsetWidth;
+      const maxY = gameArea.clientHeight - clickButton.offsetHeight;
+      const randomX = Math.floor(Math.random() * maxX);
+      const randomY = Math.floor(Math.random() * maxY);
+      clickButton.style.left = randomX + 'px';
+      clickButton.style.top = randomY + 'px';
+    }
+
+    clickButton.addEventListener('click', () => {
+      score++;
+      scoreDisplay.textContent = 'Score: ' + score;
+      randomPosition();
+    });
+
+    startBtn.addEventListener('click', () => {
+      score = 0;
+      let timeLeft = gameTime;
+      scoreDisplay.textContent = 'Score: 0';
+      timerDisplay.textContent = 'Time Left: ' + timeLeft + 's';
+      clickButton.style.display = 'block';
+      randomPosition();
+      startBtn.disabled = true;
+
+      gameInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = 'Time Left: ' + timeLeft + 's';
+
+        if (timeLeft <= 0) {
+          clearInterval(gameInterval);
+          clickButton.style.display = 'none';
+          alert('Time’s up! Your score: ' + score);
+          startBtn.disabled = false;
+          timerDisplay.textContent = 'Time Left: 30s';
+        }
+      }, 1000);
+    });
+  </script>
+
+</body>
+</html>
