@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Match Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f7f7f7;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 10px;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100px;
+      height: 100px;
+      background-color: #3498db;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .card.flipped {
+      background-color: #fff;
+      color: black;
+    }
+
+    .card img {
+      width: 60px;
+      height: 60px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #message {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 20px;
+    }
+
+    #resetBtn {
+      padding: 10px 20px;
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    #resetBtn:hover {
+      background-color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <div class="game-board" id="gameBoard"></div>
+    <div id="message"></div>
+    <button id="resetBtn">Restart Game</button>
+  </div>
+
+  <script>
+    const gameBoard = document.getElementById('gameBoard');
+    const message = document.getElementById('message');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const cards = [
+      '🍎', '🍎',
+      '🍌', '🍌',
+      '🍒', '🍒',
+      '🍉', '🍉',
+      '🍇', '🍇',
+      '🍍', '🍍',
+      '🍓', '🍓',
+      '🍊', '🍊',
+    ];
+
+    let flippedCards = [];
+    let matchedPairs = 0;
+
+    // Shuffle function
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    // Create the game board
+    function createBoard() {
+      gameBoard.innerHTML = '';
+      flippedCards = [];
+      matchedPairs = 0;
+      shuffle(cards);
+
+      cards.forEach(cardValue => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.value = cardValue;
+        card.innerHTML = `<span class="hidden">${cardValue}</span>`;
+        card.addEventListener('click', flipCard);
+        gameBoard.appendChild(card);
+      });
+
+      message.textContent = 'Find all matching pairs!';
+    }
+
+    // Flip a card
+    function flipCard(e) {
+      const clickedCard = e.target;
+
+      if (flippedCards.length < 2 && !clickedCard.classList.contains('flipped') && flippedCards.indexOf(clickedCard) === -1) {
+        clickedCard.classList.add('flipped');
+        clickedCard.innerHTML = clickedCard.dataset.value;
+
+        flippedCards.push(clickedCard);
+
+        // Check for a match
+        if (flippedCards.length === 2) {
+          if (flippedCards[0].dataset.value === flippedCards[1].dataset.value) {
+            matchedPairs++;
+            if (matchedPairs === cards.length / 2) {
+              message.textContent = 'You win! All pairs matched.';
+            }
+            flippedCards = [];
+          } else {
+            setTimeout(() => {
+              flippedCards.forEach(card => {
+                card.classList.remove('flipped');
+                card.innerHTML = `<span class="hidden">${card.dataset.value}</span>`;
+              });
+              flippedCards = [];
+            }, 1000);
+          }
+        }
+      }
+    }
+
+    // Restart the game
+    resetBtn.addEventListener('click', createBoard);
+
+    // Initialize game
+    createBoard();
+  </script>
+
+</body>
+</html>

@@ -3,134 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Click the Button Game</title>
+  <title>Snake Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f0f8ff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      padding: 0;
-    }
-
-    h1 {
-      font-size: 2em;
-      margin-top: 20px;
-    }
-
-    #gameArea {
-      position: relative;
-      width: 90%;
-      max-width: 600px;
-      height: 60vh;
-      max-height: 400px;
-      border: 2px solid #333;
-      margin: 20px auto;
-      background-color: #fff;
-      overflow: hidden;
-    }
-
-    #clickButton {
-      position: absolute;
-      padding: 10px 20px;
-      background-color: #3498db;
+      background-color: #282c34;
       color: white;
+    }
+
+    #gameCanvas {
+      border: 2px solid white;
+    }
+
+    .score-board {
+      position: absolute;
+      top: 20px;
+      font-size: 24px;
+      color: white;
+    }
+
+    .start-btn {
+      position: absolute;
+      top: 60px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #61dafb;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 1em;
     }
 
-    #score, #timer {
-      font-size: 1.5em;
-      margin: 10px 0;
-    }
-
-    #startBtn {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 1em;
-      cursor: pointer;
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.5em;
-      }
-
-      #clickButton {
-        padding: 8px 16px;
-        font-size: 0.9em;
-      }
-
-      #startBtn {
-        padding: 8px 16px;
-        font-size: 0.9em;
-      }
+    .game-over {
+      position: absolute;
+      top: 100px;
+      font-size: 32px;
+      color: red;
     }
   </style>
 </head>
 <body>
 
-  <h1>🎯 Click the Button Game</h1>
-  <p>Click the button as many times as you can in 30 seconds!</p>
-
-  <div id="gameArea">
-    <button id="clickButton" style="display:none;">Click Me!</button>
-  </div>
-
-  <div id="score">Score: 0</div>
-  <div id="timer">Time Left: 30s</div>
-  <button id="startBtn">Start Game</button>
+  <div class="score-board">Score: <span id="score">0</span></div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <button class="start-btn" id="startBtn">Start Game</button>
+  <div class="game-over" id="gameOver" style="display: none;">Game Over!</div>
 
   <script>
-    const gameArea = document.getElementById('gameArea');
-    const clickButton = document.getElementById('clickButton');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
     const scoreDisplay = document.getElementById('score');
-    const timerDisplay = document.getElementById('timer');
     const startBtn = document.getElementById('startBtn');
+    const gameOverDisplay = document.getElementById('gameOver');
 
-    let score = 0;
-    let gameTime = 30;
-    let gameInterval;
+    const gridSize = 20;
+    const canvasSize = 400;
+    const snakeColor = '#61dafb';
+    const foodColor = '#ff6347';
 
-    function randomPosition() {
-      const maxX = gameArea.clientWidth - clickButton.offsetWidth;
-      const maxY = gameArea.clientHeight - clickButton.offsetHeight;
-      const randomX = Math.floor(Math.random() * maxX);
-      const randomY = Math.floor(Math.random() * maxY);
-      clickButton.style.left = randomX + 'px';
-      clickButton.style.top = randomY + 'px';
+    let snake, food, direction, score, gameInterval;
+
+    function initGame() {
+      snake = [{ x: 160, y: 160 }];
+      food = generateFood();
+      direction = 'RIGHT';
+      score = 0;
+      scoreDisplay.textContent = score;
+      gameOverDisplay.style.display = 'none';
+
+      if (gameInterval) clearInterval(gameInterval);
+      gameInterval = setInterval(updateGame, 100);
     }
 
-    clickButton.addEventListener('click', () => {
-      score++;
-      scoreDisplay.textContent = 'Score: ' + score;
-      randomPosition();
-    });
+    function updateGame() {
+      moveSnake();
+      if (checkCollision()) {
+        endGame();
+        return;
+      }
+      if (snake[0].x === food.x && snake[0].y === food.y) {
+        snake.push({ x: food.x, y: food.y });
+        food = generateFood();
+        score++;
+        scoreDisplay.textContent = score;
+      }
+      drawGame();
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = snakeColor;
+      snake.forEach(segment => {
+        ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+      });
+
+      ctx.fillStyle = foodColor;
+      ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    }
+
+    function moveSnake() {
+      const head = { ...snake[0] };
+
+      if (direction === 'UP') head.y -= gridSize;
+      if (direction === 'DOWN') head.y += gridSize;
+      if (direction === 'LEFT') head.x -= gridSize;
+      if (direction === 'RIGHT') head.x += gridSize;
+
+      snake.unshift(head);
+      snake.pop();
+    }
+
+    function checkCollision() {
+      const head = snake[0];
+      
+      // Check wall collision
+      if (head.x < 0 || head.x >= canvasSize || head.y < 0 || head.y >= canvasSize) {
+        return true;
+      }
+
+      // Check self-collision
+      for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    function generateFood() {
+      let foodX = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+      let foodY = Math.floor(Math.random() * (canvasSize / gridSize)) * gridSize;
+      return { x: foodX, y: foodY };
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      gameOverDisplay.style.display = 'block';
+    }
+
+    function changeDirection(event) {
+      if (event.key === 'ArrowUp' && direction !== 'DOWN') {
+        direction = 'UP';
+      } else if (event.key === 'ArrowDown' && direction !== 'UP') {
+        direction = 'DOWN';
+      } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
+        direction = 'LEFT';
+      } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
+        direction = 'RIGHT';
+      }
+    }
 
     startBtn.addEventListener('click', () => {
-      score = 0;
-      let timeLeft = gameTime;
-      scoreDisplay.textContent = 'Score: 0';
-      timerDisplay.textContent = 'Time Left: ' + timeLeft + 's';
-      clickButton.style.display = 'block';
-      randomPosition();
-      startBtn.disabled = true;
-
-      gameInterval = setInterval(() => {
-        timeLeft--;
-        timerDisplay.textContent = 'Time Left: ' + timeLeft + 's';
-
-        if (timeLeft <= 0) {
-          clearInterval(gameInterval);
-          clickButton.style.display = 'none';
-          alert('Time’s up! Your score: ' + score);
-          startBtn.disabled = false;
-          timerDisplay.textContent = 'Time Left: 30s';
-        }
-      }, 1000);
+      initGame();
     });
+
+    window.addEventListener('keydown', changeDirection);
+
   </script>
 
 </body>
